@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Environment
+.env
+
+# Model weights (large files)
+models/*.pt
+models/*.pth
+!models/edu_planner.pt
+
+# Per-frame CLIP cache (generated during training -- too large for git)
+models/frame_features.pt
+
+# Cache
+cache/*.pkl
+cache/*.pt
+
+# Database
+database/*.db
+
+# Uploads (user-uploaded videos at runtime)
+uploads/
+
+# Logs
+*.log
+
+# Firebase credentials
+firebase_credentials.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter checkpoints
+.ipynb_checkpoints/

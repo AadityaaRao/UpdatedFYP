@@ -1,0 +1,201 @@
+question,route,source
+"Why does entropy always increase in an isolated system?",concept,seed
+"What is the definition of gradient descent?",concept,seed
+"Explain the concept of backpropagation",concept,seed
+"What does the term 'overfitting' mean in machine learning?",concept,seed
+"Why is normalization important in neural networks?",concept,seed
+"What is the difference between supervised and unsupervised learning?",concept,seed
+"Explain what a loss function does",concept,seed
+"Why do we use activation functions?",concept,seed
+"What is the central limit theorem?",concept,seed
+"What does the term 'eigenvalue' represent?",concept,seed
+"How do you calculate the determinant of a matrix?",procedure,seed
+"What are the steps to perform linear regression?",procedure,seed
+"How do you implement a binary search algorithm?",procedure,seed
+"What is the process of training a neural network?",procedure,seed
+"How do you normalize a dataset?",procedure,seed
+"What are the steps to solve a differential equation?",procedure,seed
+"How do you calculate the area under a curve using integration?",procedure,seed
+"What is the method to find eigenvalues?",procedure,seed
+"How do you set up a hypothesis test?",procedure,seed
+"How do you implement quicksort step by step?",procedure,seed
+"What was covered before the discussion on neural networks?",temporal,seed
+"What topic comes after linear regression in this lecture?",temporal,seed
+"When was the concept of gradient descent first introduced?",temporal,seed
+"What did the instructor explain before showing the code?",temporal,seed
+"What happens after the forward pass in backpropagation?",temporal,seed
+"In what order are these algorithms discussed?",temporal,seed
+"What was the first topic covered in today's lecture?",temporal,seed
+"What comes next after data preprocessing?",temporal,seed
+"When during the lecture was the formula first shown?",temporal,seed
+"What was discussed right before the conclusion?",temporal,seed
+"What is shown in the diagram on the slide?",visual,seed
+"Can you describe the graph displayed?",visual,seed
+"What does the figure on the board represent?",visual,seed
+"What is written on the slide?",visual,seed
+"What objects are visible in the current frame?",visual,seed
+"What does the flowchart on screen show?",visual,seed
+"Can you read the formula written on the whiteboard?",visual,seed
+"What is the chart showing about the data distribution?",visual,seed
+"Describe what the instructor is pointing at",visual,seed
+"What is drawn on the board right now?",visual,seed
+"Give me a summary of this lecture",summary,seed
+"What are the main points covered in this video?",summary,seed
+"Can you provide an overview of today's topics?",summary,seed
+"What are the key takeaways from this section?",summary,seed
+"Summarize the lecture on machine learning",summary,seed
+"What topics were discussed in this video?",summary,seed
+"Give me a recap of the important concepts",summary,seed
+"What is the outline of this lecture?",summary,seed
+"Summarize the main arguments presented",summary,seed
+"What are the overall conclusions from this lecture?",summary,seed
+"What is the intuition behind eigenvectors and eigenvalues?",concept,manual
+"Why does the Central Limit Theorem apply in this scenario?",concept,manual
+"What is the fundamental difference between a heap and a binary search tree?",concept,manual
+"Why is entropy defined using a logarithm in information theory?",concept,manual
+"Can you explain the physical meaning behind Maxwell's equations?",concept,manual
+"What does it mean for a mathematical function to be Turing computable?",concept,manual
+"Why is the dot product of orthogonal vectors exactly zero?",concept,manual
+"What is the principle of superposition in quantum mechanics?",concept,manual
+"How does the blockchain actually solve the Byzantine Generals Problem?",concept,manual
+"Why do we use ReLU instead of a Sigmoid function in hidden layers?",concept,manual
+"What exactly is a manifold in the context of topology?",concept,manual
+"Why is the speed of light constant in all inertial reference frames?",concept,manual
+"What is the theoretical difference between NP and NP-Complete problems?",concept,manual
+"Why does a magnetic field do no work on a moving charge?",concept,manual
+"What is the economic intuition behind reaching a Nash Equilibrium?",concept,manual
+"Why do we use the Fourier Transform to analyze signals?",concept,manual
+"What is the physical significance of the Reynolds number in fluid dynamics?",concept,manual
+"Why does adding a regularization term help prevent overfitting?",concept,manual
+"What does it mean geometrically for a matrix to be non-invertible?",concept,manual
+"Why is DNA replication described as semi-conservative?",concept,manual
+"Why do we use the cross-entropy loss function for classification tasks?",concept,manual
+"What is the primary biological purpose of the Krebs cycle?",concept,manual
+"Why does the demand curve traditionally slope downwards?",concept,manual
+"What is the conceptual difference between a class and an object in OOP?",concept,manual
+"Why is the sky blue according to Rayleigh scattering?",concept,manual
+"What is the intuition behind applying the Pythagorean theorem in higher dimensions?",concept,manual
+"Why do isolated thermodynamic systems always trend towards maximum entropy?",concept,manual
+"What does 'mutually exclusive' actually mean in probability theory?",concept,manual
+"Why is a prime number considered the fundamental building block of integers?",concept,manual
+"What is the conceptual difference between mass and weight in physics?",concept,manual
+"How do you calculate the determinant of a 3x3 matrix?",procedure,manual
+"What are the exact steps to balance this complex redox reaction?",procedure,manual
+"How did the professor factor out the x squared term in that algebraic step?",procedure,manual
+"How do we apply L'Hopital's rule when the limit is infinity over infinity?",procedure,manual
+"How do you traverse a graph using the Breadth-First Search algorithm?",procedure,manual
+"What is the step-by-step mathematical process for backpropagation?",procedure,manual
+"How do you convert a Nondeterministic Finite Automaton (NFA) to a DFA?",procedure,manual
+"How is the pivot element chosen in this specific QuickSort example?",procedure,manual
+"How do you solve a second-order linear homogeneous differential equation?",procedure,manual
+"How do we normalize a wave function in quantum mechanics?",procedure,manual
+"How did the instructor transition from the integral to the Taylor series expansion?",procedure,manual
+"What are the steps to finding the Thevenin equivalent of this circuit?",procedure,manual
+"How do you actually implement Dijkstra's algorithm from scratch in Python?",procedure,manual
+"How do we draw Mohr's circle to determine this specific stress state?",procedure,manual
+"How do you calculate the margin of error for a 95 percent confidence interval?",procedure,manual
+"How did they derive that kinematic equation from the velocity-time graph?",procedure,manual
+"How do you use the right-hand rule to find the direction of the torque vector?",procedure,manual
+"How is the chain rule applied when dealing with partial derivatives?",procedure,manual
+"How do you balance an AVL tree after performing a new insertion?",procedure,manual
+"How did he simplify that long Boolean expression using a Karnaugh map?",procedure,manual
+"How do you calculate the standard deviation step-by-step from raw data?",procedure,manual
+"What are the steps to perform a Gram-Schmidt orthogonalization process?",procedure,manual
+"How do you properly setup a virtual environment in Python before installing packages?",procedure,manual
+"How did the professor evaluate the inner integral of that double integral?",procedure,manual
+"How do you determine the hybridization of the central atom in this molecule?",procedure,manual
+"What is the correct procedure for conducting an independent samples t-test?",procedure,manual
+"How do you construct a perpendicular bisector using just a compass and straightedge?",procedure,manual
+"How did they mathematically calculate the tension in the connected string?",procedure,manual
+"How do you correctly apply the quotient rule in this calculus problem?",procedure,manual
+"What are the laboratory steps to isolate DNA from a strawberry?",procedure,manual
+"What topic did the professor cover immediately after the syllabus introduction?",temporal,manual
+"At what exact point does he start explaining the proof for Fermat's Little Theorem?",temporal,manual
+"Did she mention what chapters the midterm covers earlier in the video?",temporal,manual
+"What was the previous code example about right before he erased the whiteboard?",temporal,manual
+"How long does the instructor spend answering questions during the Q&A section?",temporal,manual
+"What did they say about the boundary conditions at the very beginning of the lecture?",temporal,manual
+"Where in the video is the final summary of the kinematic equations located?",temporal,manual
+"What was the analogy the professor made right before taking the mid-lecture break?",temporal,manual
+"Did he explain what the variable 'k' stands for earlier in the mathematical derivation?",temporal,manual
+"When does the video switch from explaining the theory to showing coding examples?",temporal,manual
+"What mathematical concept was discussed just before introducing Markov chains?",temporal,manual
+"Does this lecture cover continuous probability distributions after the discrete ones?",temporal,manual
+"What was the very first theorem introduced and proven in this session?",temporal,manual
+"At what timestamp does the 3D visual animation of the algorithm start?",temporal,manual
+"What question did the student ask from the audience about a minute ago?",temporal,manual
+"Did the professor skip Chapter 4 entirely, or was it briefly mentioned earlier?",temporal,manual
+"What were the specific course prerequisites mentioned in the first five minutes?",temporal,manual
+"When does the instructor recap the material covered in the previous lecture?",temporal,manual
+"What was the final concluding point made before the video completely ended?",temporal,manual
+"Did she define 'homomorphism' before or after explaining 'isomorphism'?",temporal,manual
+"What did the professor say right after the microphone temporarily cut out?",temporal,manual
+"When exactly does he introduce the concept of memory pointers in C++?",temporal,manual
+"Did the video explain the necessary hardware requirements early on?",temporal,manual
+"At what specific point do we see the actual chemical reaction happen in the lab?",temporal,manual
+"What was the safety warning she gave right before running the executable script?",temporal,manual
+"Did they cover the edge cases to this syntax rule later in the lecture?",temporal,manual
+"When does the screen recording switch from the slides to the terminal?",temporal,manual
+"What administrative topics were discussed in the last five minutes of the class?",temporal,manual
+"Where in the timeline does he finally answer the student's question about black holes?",temporal,manual
+"Did she provide any real-world industry examples before moving to the next chapter?",temporal,manual
+"What does the dotted red line in the middle of the graph represent?",visual,manual
+"Can you explain the forces shown on the free body diagram currently on screen?",visual,manual
+"What is the differential equation written in the top right corner of the blackboard?",visual,manual
+"In the animation, why do the blue particles move significantly faster than the red ones?",visual,manual
+"What specific metric does the x-axis represent in this scatter plot?",visual,manual
+"Can you read what the professor wrote below the integral sign? The camera is blurry.",visual,manual
+"What do the shaded intersecting regions in the Venn diagram correspond to?",visual,manual
+"What is the functional purpose of the resistor labeled R2 in the circuit schematic?",visual,manual
+"In the rotating 3D plot, what does the transition from blue to red signify?",visual,manual
+"Why is the vector arrow pointing downwards in that specific part of the field diagram?",visual,manual
+"What specific region of the brain is highlighted in bright green on the slide?",visual,manual
+"What do the open circles and shaded squares mean in this genetics pedigree chart?",visual,manual
+"Can you explain the logic flowchart for the compiler phases shown here?",visual,manual
+"What does the sudden dip in the voltage curve around t=5 seconds indicate?",visual,manual
+"What are the specific feature labels written on the nodes of this decision tree?",visual,manual
+"Why did the professor forcefully cross out the second polynomial term on the whiteboard?",visual,manual
+"What physical quantity does the area under this specific velocity curve represent?",visual,manual
+"In the neural network diagram, what do the thicker bold lines between layers imply?",visual,manual
+"What is the core structural difference shown between the two molecules on screen?",visual,manual
+"What do the vertical error bars on this experimental bar chart indicate?",visual,manual
+"What does the thick black arrow pointing to the right in the diagram signify?",visual,manual
+"Can you transcribe the Python code snippet currently shown on the presenter's monitor?",visual,manual
+"What are those tiny floating dots surrounding the nucleus in the biological animation?",visual,manual
+"Why is the top half of the application window blurred out in the screencast?",visual,manual
+"What does the yellow warning triangle icon next to the equation mean?",visual,manual
+"In the geographical map shown, what demographic do the dark red zones represent?",visual,manual
+"Can you explain the different components in the cloud architecture diagram displayed?",visual,manual
+"What are the exact units of measurement on the y-axis of this histogram?",visual,manual
+"Why did the slide's background color change to red during that security explanation?",visual,manual
+"What is the subtitle text written directly under the main title on the opening slide?",visual,manual
+"Can you give a brief, high-level overview of this entire lecture on thermodynamics?",summary,manual
+"What are the three main takeaways from this video about the causes of the French Revolution?",summary,manual
+"Summarize the professor's core argument against the efficient market hypothesis.",summary,manual
+"What is the basic TL;DR of this hour-long advanced calculus tutorial?",summary,manual
+"Can you quickly summarize the steps shown in the video for building a basic REST API?",summary,manual
+"What are the core conceptual topics covered in today's lesson on molecular cell biology?",summary,manual
+"Give me a high-level summary of the architectural differences between TCP and UDP explained here.",summary,manual
+"What was the central underlying theme of this industry guest lecture?",summary,manual
+"Can you condense the video's explanation of Special Relativity into three main bullet points?",summary,manual
+"Summarize the primary pros and cons of nuclear energy as discussed in the documentary.",summary,manual
+"What is the final overall conclusion derived from the physics experiment demonstrated?",summary,manual
+"Give a brief chronological recap of the historical timeline presented in the video.",summary,manual
+"What are the absolute key formulas I need to write down and remember from this physics video?",summary,manual
+"Summarize the instructor's general methodology and advice on debugging memory leaks.",summary,manual
+"What is the fundamental, real-world problem this sorting algorithm is trying to solve?",summary,manual
+"Can you provide a one-paragraph summary of the philosophical debate shown in the lecture?",summary,manual
+"What are the most important findings of the academic research paper discussed in this seminar?",summary,manual
+"Summarize the general workflow for character 3D modeling as shown in this software tutorial.",summary,manual
+"What is the overarching goal of the web application being built in this entire video series?",summary,manual
+"Can you summarize the core differences between macroeconomics and microeconomics outlined in the video?",summary,manual
+"What is the core educational message or moral of this TED-Ed animation?",summary,manual
+"Can you summarize the identifying characteristics of the three main types of rocks discussed?",summary,manual
+"What is the big picture idea behind this introductory video to machine learning?",summary,manual
+"Summarize the narrative arc and plot of the classic novel as analyzed in this video.",summary,manual
+"What are the key historical milestones summarized in this rapid-fire crash course?",summary,manual
+"Give a brief overview of the lab safety protocols mentioned at the start of the demonstration.",summary,manual
+"What is the final concluding thought or call to action of the expert panel discussion?",summary,manual
+"Summarize the primary business advantages of migrating to cloud computing explained here.",summary,manual
+"What is the single most important takeaway regarding climate change from this environmental lecture?",summary,manual
+"Can you provide a concise, bulleted summary of the video essay's main persuasive arguments?",summary,manual
