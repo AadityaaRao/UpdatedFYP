@@ -42,6 +42,15 @@ from edu_api_client import (
 )
 
 # ══════════════════════════════════════════════════════════════
+# Helpers
+# ══════════════════════════════════════════════════════════════
+def _fmt_time(seconds: float) -> str:
+    """Format seconds as MM:SS."""
+    m = int(seconds // 60)
+    s = int(seconds % 60)
+    return f"{m:02d}:{s:02d}"
+
+# ══════════════════════════════════════════════════════════════
 # Page Config
 # ══════════════════════════════════════════════════════════════
 st.set_page_config(
@@ -481,14 +490,3 @@ st.caption(
     "Edu-VQAGuider | Powered by DistilBERT Planner "
     "| CLIP Visual Evidence | Qwen Answer Generation"
 )
-
-
-# ══════════════════════════════════════════════════════════════
-# Helpers
-# ══════════════════════════════════════════════════════════════
-
-def _fmt_time(seconds: float) -> str:
-    """Format seconds as MM:SS."""
-    m = int(seconds // 60)
-    s = int(seconds % 60)
-    return f"{m:02d}:{s:02d}"
