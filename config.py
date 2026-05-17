@@ -50,7 +50,7 @@ EDU_CHUNK_SECONDS = int(os.getenv("EDU_CHUNK_SECONDS", "60"))
 EDU_FRAMES_PER_CHUNK = int(os.getenv("EDU_FRAMES_PER_CHUNK", "4"))
 EDU_TOP_K = int(os.getenv("EDU_TOP_K", "3"))
 EDU_SUMMARY_TOP_K = int(os.getenv("EDU_SUMMARY_TOP_K", "5"))
-EDU_MAX_NEW_TOKENS = int(os.getenv("EDU_MAX_NEW_TOKENS", "350"))
+EDU_MAX_NEW_TOKENS = int(os.getenv("EDU_MAX_NEW_TOKENS", "600"))
 EDU_WHISPER_MODEL = os.getenv("EDU_WHISPER_MODEL", "small")
 EDU_QWEN_MODEL = os.getenv("EDU_QWEN_MODEL", "Qwen/Qwen2.5-3B-Instruct")
 # ── Ensure directories exist at import time ───────────────────
