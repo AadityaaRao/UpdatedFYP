@@ -198,3 +198,28 @@ class HistoryResponse(BaseModel):
     """List of past queries for a video."""
     video_id: str
     items: list[HistoryItem]
+
+
+# ══════════════════════════════════════════════════════════════
+# Evaluation / Comparison Baseline Schemas
+# ══════════════════════════════════════════════════════════════
+
+class BaselineAskRequest(BaseModel):
+    """Request body for baseline query."""
+    question: str
+
+
+class BaselineAskResponse(BaseModel):
+    """Response body for baseline query."""
+    answer: str
+
+
+class DirectGenerateRequest(BaseModel):
+    """Request body for direct generation prompt."""
+    prompt: str
+
+
+class DirectGenerateResponse(BaseModel):
+    """Response body for direct generation prompt."""
+    answer: str
+

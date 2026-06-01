@@ -30,6 +30,10 @@ from backend.edu.schemas import (
     EduRoute,
     PlannerSource,
     RouteInfo,
+    BaselineAskRequest,
+    BaselineAskResponse,
+    DirectGenerateRequest,
+    DirectGenerateResponse,
 )
 from backend.utils.logger import get_logger
 
@@ -230,3 +234,80 @@ async def get_edu_result(result_id: str) -> EduResultResponse:
         evidence_chunks=evidence_chunks,
         created_at=record["created_at"],
     )
+
+
+# ── POST /api/v2/baseline_ask ────────────────────────────────
+
+@router.post(
+    "/baseline_ask",
+    response_model=BaselineAskResponse,
+    summary="Ask a question without video context (baseline)",
+)
+async def baseline_ask(
+    body: BaselineAskRequest,
+    request: Request,
+) -> BaselineAskResponse:
+    """
+    Directly query Qwen without any video transcript or retrieval context.
+    Acts as the baseline (zero-shot) for comparison.
+    """
+    question = body.question
+    logger.info("baseline_ask | question='%s'", question[:60])
+    
+    edu_state = getattr(request.app.state, "edu_models", None)
+    generate_fn = edu_state.get("generate_fn") if edu_state else None
+    
+    if generate_fn is None:
+        logger.warning("No Qwen generate_fn available for baseline_ask.")
+        ans = (
+            f"[Baseline Placeholder] Qwen is not loaded (likely CPU-only or skipped). "
+            f"Unable to generate direct answer to: '{question}'"
+        )
+    else:
+        try:
+            # Construct a clean instruction prompt for direct general-knowledge answering
+            prompt = (
+                f"You are an educational AI assistant. Answer the following question "
+                f"based on your general knowledge. Be precise, accurate, and direct.\n\n"
+                f"Question: {question}\n\nAnswer:"
+            )
+            ans = generate_fn(prompt)
+        except Exception as exc:
+            logger.exception("Baseline generation failed: %s", exc)
+            ans = f"Error during baseline generation: {exc}"
+            
+    return BaselineAskResponse(answer=ans)
+
+
+# ── POST /api/v2/direct_generate ─────────────────────────────
+
+@router.post(
+    "/direct_generate",
+    response_model=DirectGenerateResponse,
+    summary="Run direct text generation on a raw prompt",
+)
+async def direct_generate(
+    body: DirectGenerateRequest,
+    request: Request,
+) -> DirectGenerateResponse:
+    """
+    Run direct prompt generation on Qwen without any framing or schemas.
+    """
+    prompt = body.prompt
+    logger.info("direct_generate | prompt='%s'", prompt[:60])
+    
+    edu_state = getattr(request.app.state, "edu_models", None)
+    generate_fn = edu_state.get("generate_fn") if edu_state else None
+    
+    if generate_fn is None:
+        logger.warning("No Qwen generate_fn available for direct_generate.")
+        ans = "[Generation Placeholder] Qwen is not loaded."
+    else:
+        try:
+            ans = generate_fn(prompt)
+        except Exception as exc:
+            logger.exception("Direct generation failed: %s", exc)
+            ans = f"Error during direct generation: {exc}"
+            
+    return DirectGenerateResponse(answer=ans)
+
