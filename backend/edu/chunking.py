@@ -13,12 +13,12 @@ Public API:
 from __future__ import annotations
 
 import json
+import subprocess
 import uuid
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Optional
 
-import cv2
 import numpy as np
 
 from backend.utils.logger import get_logger
@@ -52,59 +52,99 @@ class ChunkMeta:
         }
 
 
+def _run_ffprobe(video_path: str | Path) -> dict:
+    """Run ffprobe to get video metadata."""
+    cmd = [
+        "ffprobe",
+        "-v", "error",
+        "-select_streams", "v:0",
+        "-show_entries", "stream=width,height,r_frame_rate,duration,nb_frames",
+        "-of", "json",
+        str(video_path)
+    ]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True)
+    except FileNotFoundError:
+        raise RuntimeError("ffprobe not found. Please install ffmpeg (which includes ffprobe).")
+    
+    if result.returncode != 0:
+        raise RuntimeError(f"ffprobe failed: {result.stderr}")
+    
+    data = json.loads(result.stdout)
+    if not data.get("streams"):
+        raise RuntimeError(f"No video streams found in {video_path}")
+    return data["streams"][0]
+
+
+def _run_ffprobe_format(video_path: str | Path) -> dict:
+    """Run ffprobe to get format-level metadata (like duration)."""
+    cmd = [
+        "ffprobe",
+        "-v", "error",
+        "-show_entries", "format=duration",
+        "-of", "json",
+        str(video_path)
+    ]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True)
+    except FileNotFoundError:
+        raise RuntimeError("ffprobe not found. Please install ffmpeg (which includes ffprobe).")
+        
+    if result.returncode != 0:
+        return {}
+    data = json.loads(result.stdout)
+    return data.get("format", {})
+
+
 def get_video_duration(video_path: str | Path) -> float:
     """
-    Get video duration in seconds using cv2.
-
-    Args:
-        video_path: Path to the video file
-
-    Returns:
-        Duration in seconds
-
-    Raises:
-        RuntimeError: If video cannot be opened
+    Get video duration in seconds using ffprobe.
     """
-    cap = cv2.VideoCapture(str(video_path))
-    if not cap.isOpened():
-        raise RuntimeError(f"Cannot open video: {video_path}")
-
-    fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    cap.release()
-
-    if total_frames <= 0 or fps <= 0:
-        raise RuntimeError(f"Invalid video metadata: frames={total_frames}, fps={fps}")
-
-    duration = total_frames / fps
-    logger.debug("Video duration: %.1f sec (%.0f fps, %d frames)", duration, fps, total_frames)
-    return duration
+    stream_info = _run_ffprobe(video_path)
+    if "duration" in stream_info:
+        return float(stream_info["duration"])
+    
+    fmt_info = _run_ffprobe_format(video_path)
+    if "duration" in fmt_info:
+        return float(fmt_info["duration"])
+        
+    raise RuntimeError(f"Could not determine duration for {video_path}")
 
 
 def get_video_info(video_path: str | Path) -> dict:
     """
-    Get basic video metadata without decoding frames.
+    Get basic video metadata using ffprobe.
 
     Returns:
         Dict with keys: fps, total_frames, duration_sec, width, height
     """
-    cap = cv2.VideoCapture(str(video_path))
-    if not cap.isOpened():
-        raise RuntimeError(f"Cannot open video: {video_path}")
-
-    info = {
-        "fps": cap.get(cv2.CAP_PROP_FPS) or 30.0,
-        "total_frames": int(cap.get(cv2.CAP_PROP_FRAME_COUNT)),
-        "width": int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
-        "height": int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+    stream_info = _run_ffprobe(video_path)
+    
+    r_frame_rate = stream_info.get("r_frame_rate", "30/1")
+    if "/" in r_frame_rate:
+        num, den = r_frame_rate.split("/")
+        fps = float(num) / float(den) if float(den) != 0 else 30.0
+    else:
+        fps = float(r_frame_rate)
+        
+    total_frames = int(stream_info.get("nb_frames", 0))
+    
+    if "duration" in stream_info:
+        duration_sec = float(stream_info["duration"])
+    else:
+        fmt_info = _run_ffprobe_format(video_path)
+        duration_sec = float(fmt_info.get("duration", 0.0))
+        
+    if total_frames == 0 and duration_sec > 0 and fps > 0:
+        total_frames = int(duration_sec * fps)
+        
+    return {
+        "fps": round(fps, 2),
+        "total_frames": total_frames,
+        "duration_sec": round(duration_sec, 2),
+        "width": int(stream_info.get("width", 0)),
+        "height": int(stream_info.get("height", 0)),
     }
-    cap.release()
-
-    info["duration_sec"] = round(
-        info["total_frames"] / info["fps"], 2
-    ) if info["fps"] > 0 else 0.0
-
-    return info
 
 
 def create_chunks(
@@ -155,7 +195,7 @@ def sample_chunk_frames(
     output_dir: str | Path = ".",
 ) -> list[str]:
     """
-    Sample frames from a specific chunk by seeking to timestamps.
+    Sample frames from a specific chunk using FFmpeg.
     Saves frames as JPEG files and returns their paths.
 
     Args:
@@ -170,14 +210,8 @@ def sample_chunk_frames(
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    cap = cv2.VideoCapture(str(video_path))
-    if not cap.isOpened():
-        raise RuntimeError(f"Cannot open video: {video_path}")
-
-    # Calculate timestamps to sample at (uniform within chunk)
     duration = chunk.end_time - chunk.start_time
     if duration <= 0:
-        cap.release()
         return []
 
     timestamps_sec = np.linspace(
@@ -189,20 +223,32 @@ def sample_chunk_frames(
     frame_paths: list[str] = []
 
     for i, ts in enumerate(timestamps_sec):
-        cap.set(cv2.CAP_PROP_POS_MSEC, ts * 1000.0)
-        ret, frame = cap.read()
-        if ret and frame is not None:
-            fname = f"frame_{chunk.chunk_id[:8]}_{i:02d}.jpg"
-            fpath = output_dir / fname
-            cv2.imwrite(str(fpath), frame)
-            frame_paths.append(str(fpath.resolve()))
-        else:
-            logger.warning(
-                "Failed to read frame at %.1fs for chunk %s",
-                ts, chunk.chunk_id[:8],
-            )
+        fname = f"frame_{chunk.chunk_id[:8]}_{i:02d}.jpg"
+        fpath = output_dir / fname
+        
+        cmd = [
+            "ffmpeg",
+            "-y",               # overwrite
+            "-ss", str(ts),     # fast seek
+            "-i", str(video_path),
+            "-frames:v", "1",
+            "-q:v", "2",        # high quality jpeg
+            str(fpath)
+        ]
+        
+        try:
+            result = subprocess.run(cmd, capture_output=True)
+            if result.returncode == 0 and fpath.exists():
+                frame_paths.append(str(fpath.resolve()))
+            else:
+                logger.warning(
+                    "Failed to read frame at %.1fs for chunk %s. err: %s",
+                    ts, chunk.chunk_id[:8], result.stderr.decode('utf-8', errors='ignore')[-200:]
+                )
+        except FileNotFoundError:
+            logger.error("ffmpeg not found. Cannot extract frames.")
+            break
 
-    cap.release()
     logger.debug(
         "Sampled %d frames for chunk %s (%.1f-%.1fs)",
         len(frame_paths), chunk.chunk_id[:8],
