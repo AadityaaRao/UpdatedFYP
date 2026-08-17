@@ -8,7 +8,7 @@ Manages loading/unloading of heavy models to fit within
 
 Two phases:
     PROCESSING: Whisper (1 GB) -- transcribe then unload
-    QUERY:      CLIP (0.4 GB) + DistilBERT+Planner (0.3 GB) + Qwen (2.5 GB)
+    QUERY:      CLIP (0.4 GB) + DistilBERT+Planner (0.3 GB) + Qwen VL (5-6 GB)
 
 Public API:
     EduModelManager  — singleton that manages all model loading
@@ -141,25 +141,25 @@ class EduModelManager:
 
     def load_qwen(
         self,
-        model_name: str = "Qwen/Qwen2.5-3B-Instruct",
+        model_name: str = "Qwen/Qwen2.5-VL-7B-Instruct",
         max_new_tokens: int = 350,
     ) -> None:
         """Load Qwen and create the generate function."""
         from backend.edu.generation import load_qwen, create_generate_fn
 
-        model, tokenizer = load_qwen(
+        model, processor = load_qwen(
             model_name=model_name,
             device=self.device,
         )
 
         self.generate_fn = create_generate_fn(
             model=model,
-            tokenizer=tokenizer,
+            processor=processor,
             max_new_tokens=max_new_tokens,
             do_sample=False,
         )
 
-        self._log_vram("Qwen loaded")
+        self._log_vram("Qwen VL loaded")
 
     # ══════════════════════════════════════════════════════════
     # Composite loading
@@ -168,7 +168,7 @@ class EduModelManager:
     def load_query_models(
         self,
         planner_checkpoint: str | Path = "models/edu_planner.pt",
-        qwen_model: str = "Qwen/Qwen2.5-3B-Instruct",
+        qwen_model: str = "Qwen/Qwen2.5-VL-7B-Instruct",
         max_new_tokens: int = 350,
         skip_qwen: bool = False,
         skip_clip: bool = False,
@@ -179,7 +179,7 @@ class EduModelManager:
         Order matters for VRAM:
             1. CLIP (small, 0.4 GB)
             2. DistilBERT + Planner (small, 0.3 GB)
-            3. Qwen (largest, 2.5 GB in 4-bit)
+            3. Qwen VL (largest, 5-6 GB in 4-bit)
 
         Args:
             planner_checkpoint: Path to trained planner .pt file

@@ -52,7 +52,7 @@ EDU_TOP_K = int(os.getenv("EDU_TOP_K", "3"))
 EDU_SUMMARY_TOP_K = int(os.getenv("EDU_SUMMARY_TOP_K", "5"))
 EDU_MAX_NEW_TOKENS = int(os.getenv("EDU_MAX_NEW_TOKENS", "600"))
 EDU_WHISPER_MODEL = os.getenv("EDU_WHISPER_MODEL", "small")
-EDU_QWEN_MODEL = os.getenv("EDU_QWEN_MODEL", "Qwen/Qwen2.5-3B-Instruct")
+EDU_QWEN_MODEL = os.getenv("EDU_QWEN_MODEL", "Qwen/Qwen2.5-VL-7B-Instruct")
 # ── Ensure directories exist at import time ───────────────────
 for _dir in [MODELS_DIR, CACHE_DIR, EDU_CACHE_DIR, DB_DIR, UPLOADS_DIR]:
     _dir.mkdir(parents=True, exist_ok=True)
