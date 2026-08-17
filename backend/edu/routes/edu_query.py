@@ -180,6 +180,7 @@ async def ask_edu_question(
         detailed_answer=result.detailed_answer,
         route=route_info,
         evidence_chunks=evidence_chunks,
+        confidence_level=getattr(result, "confidence_level", "high"),
     )
 
 

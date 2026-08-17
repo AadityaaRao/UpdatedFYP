@@ -771,3 +771,96 @@ def main():
 
 if __name__ == "__main__":
     main()
+r in rows) / n
+        avg_base_sim   = sum(r["baseline_semsim"] for r in rows) / n
+        avg_edu_sim    = sum(r["edu_semsim"] for r in rows) / n
+        
+        print("\n" + "═" * 70)
+        print("  FINAL RESULTS")
+        print("═" * 70)
+        print(f"  Total questions:       {n}")
+        print(f"  Edu-VQAGuider wins:   {edu_wins}/{n} ({edu_wins/n:.1%})")
+        print(f"  Baseline wins:        {base_wins}/{n} ({base_wins/n:.1%})")
+        print(f"  ──────────────────────────────────────────")
+        print(f"  {'Metric':<22s} {'Baseline':>10s} {'Edu':>10s} {'Δ':>10s}")
+        print(f"  {'ROUGE-L':<22s} {avg_base_rouge:>10.4f} {avg_edu_rouge:>10.4f} {avg_edu_rouge - avg_base_rouge:>+10.4f}")
+        print(f"  {'BERTScore':<22s} {avg_base_bert:>10.4f} {avg_edu_bert:>10.4f} {avg_edu_bert - avg_base_bert:>+10.4f}")
+        print(f"  {'Semantic Similarity':<22s} {avg_base_sim:>10.4f} {avg_edu_sim:>10.4f} {avg_edu_sim - avg_base_sim:>+10.4f}")
+        print("═" * 70)
+    
+    return rows
+
+
+# ─────────────────────────────────────────────────────────────
+# CLI
+# ─────────────────────────────────────────────────────────────
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Compare Baseline vs Edu-VQAGuider on educational video QA"
+    )
+    parser.add_argument(
+        "--csv", type=str, required=True,
+        help="Path to test questions CSV (see evaluation/test_questions.csv)"
+    )
+    parser.add_argument(
+        "--video_path", type=str, default=None,
+        help="Path to video file (will upload + transcribe automatically)"
+    )
+    parser.add_argument(
+        "--video_id", type=str, default=None,
+        help="Existing video_id (if already uploaded and transcribed)"
+    )
+    parser.add_argument(
+        "--backend", type=str, default="http://localhost:8000",
+        help="Backend URL (default: http://localhost:8000)"
+    )
+    parser.add_argument(
+        "--output_dir", type=str, default="evaluation/results",
+        help="Directory for output files"
+    )
+    args = parser.parse_args()
+    
+    # Check backend
+    try:
+        resp = requests.get(f"{args.backend}/health", timeout=5)
+        data = resp.json()
+        print(f"✅ Backend online | v2_edu_ready={data.get('v2_edu_ready')} | "
+              f"device={data.get('device')}")
+    except Exception:
+        print(f"❌ Cannot reach backend at {args.backend}")
+        print("   Start it with: uvicorn backend.main:app --host 0.0.0.0 --port 8000")
+        sys.exit(1)
+    
+    # Get or upload video
+    video_id = args.video_id
+    if video_id is None:
+        if args.video_path is None:
+            print("ERROR: Provide either --video_id or --video_path")
+            sys.exit(1)
+        video_id = upload_and_transcribe(args.video_path, args.backend)
+        if video_id is None:
+            print("ERROR: Video upload/transcription failed")
+            sys.exit(1)
+    
+    # Run evaluation
+    rows = run_evaluation(
+        csv_path=args.csv,
+        video_id=video_id,
+        backend_url=args.backend,
+        output_dir=args.output_dir,
+    )
+    
+    # Export
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    excel_path = str(Path(args.output_dir) / f"comparison_{timestamp}.xlsx")
+    csv_out    = str(Path(args.output_dir) / f"comparison_{timestamp}.csv")
+    
+    export_excel(rows, excel_path)
+    export_csv(rows, csv_out)
+    
+    print(f"\n📊 Results saved to: {args.output_dir}/")
+
+
+if __name__ == "__main__":
+    main()

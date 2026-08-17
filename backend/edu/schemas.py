@@ -163,6 +163,10 @@ class EduAskResponse(BaseModel):
         default_factory=list,
         description="Retrieved chunks used as evidence"
     )
+    confidence_level: str = Field(
+        "high",
+        description="Answer confidence level: 'high', 'medium', or 'low'"
+    )
 
 
 # ══════════════════════════════════════════════════════════════

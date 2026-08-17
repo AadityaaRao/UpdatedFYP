@@ -135,6 +135,19 @@ st.markdown("""
         color: #64748b;
     }
 
+    /* Confidence indicators */
+    .confidence-badge {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.15rem 0.6rem;
+        border-radius: 999px;
+        margin-left: 0.3rem;
+    }
+    .confidence-high   { background: #dcfce7; color: #16a34a; }
+    .confidence-medium { background: #fef3c7; color: #d97706; }
+    .confidence-low    { background: #fee2e2; color: #dc2626; }
+
     /* Evidence */
     .evidence-card {
         background: #fefce8;
@@ -180,6 +193,8 @@ for key, default in {
     "video_status": None,
     "last_result": None,
     "history": [],
+    "video_bytes": None,
+    "video_start_time": 0,
 }.items():
     if key not in st.session_state:
         st.session_state[key] = default
@@ -228,8 +243,13 @@ with st.sidebar:
                 f"`{st.session_state.video_id[:8]}...`\n\n"
                 f"Status: {st.session_state.video_status or 'unknown'}")
         if st.button("Clear Video", use_container_width=True):
-            for key in ["video_id", "video_name", "video_status", "last_result", "history"]:
-                st.session_state[key] = None if key != "history" else []
+            for key in ["video_id", "video_name", "video_status", "last_result", "history", "video_bytes", "video_start_time"]:
+                if key == "history":
+                    st.session_state[key] = []
+                elif key == "video_start_time":
+                    st.session_state[key] = 0
+                else:
+                    st.session_state[key] = None
             st.rerun()
     else:
         st.caption("No video loaded.")
@@ -263,12 +283,15 @@ if uploaded_file is not None:
     if is_new:
         with st.spinner(f"Uploading **{uploaded_file.name}**..."):
             try:
+                video_data = uploaded_file.getvalue()
                 result = upload_edu_video(
-                    backend_url, uploaded_file.getvalue(), uploaded_file.name,
+                    backend_url, video_data, uploaded_file.name,
                 )
                 st.session_state.video_id = result["video_id"]
                 st.session_state.video_name = uploaded_file.name
                 st.session_state.video_status = result.get("status", "pending")
+                st.session_state.video_bytes = video_data
+                st.session_state.video_start_time = 0
                 st.session_state.last_result = None
                 st.session_state.history = []
 
@@ -283,6 +306,17 @@ if uploaded_file is not None:
     else:
         if st.session_state.video_id:
             st.success(f"Video ready: `{st.session_state.video_id[:8]}...`")
+
+# ══════════════════════════════════════════════════════════════
+# Video Player (with jump-to-timestamp support)
+# ══════════════════════════════════════════════════════════════
+if st.session_state.video_bytes is not None:
+    st.markdown("---")
+    st.markdown("#### 📺 Video Player")
+    start_time = st.session_state.get("video_start_time", 0)
+    st.video(st.session_state.video_bytes, start_time=int(start_time))
+    if start_time > 0:
+        st.caption(f"▶️ Jumped to {_fmt_time(start_time)}")
 
 # ══════════════════════════════════════════════════════════════
 # Step 2: Transcript
@@ -383,21 +417,27 @@ if result is not None:
     st.markdown("---")
     st.markdown("#### Results")
 
-    # ── Route badge ───────────────────────────────────────────
+    # ── Route badge + Confidence indicator ─────────────────────
     route_data = result.get("route", {})
     route_name = route_data.get("route", "concept")
     confidence = route_data.get("confidence", 0)
     planner_source = route_data.get("planner_source", "fallback")
+    confidence_level = result.get("confidence_level", "high")
 
     route_emoji = {
         "concept": "📚", "procedure": "📋", "temporal": "⏱️",
         "visual": "👁️", "summary": "📝",
     }
 
+    confidence_emoji = {"high": "🟢", "medium": "🟡", "low": "🔴"}
+    confidence_label = {"high": "High Confidence", "medium": "Medium Confidence", "low": "Low Confidence"}
+
     st.markdown(
         f'<span class="route-badge route-{route_name}">'
         f'{route_emoji.get(route_name, "🏷️")} {route_name.upper()}</span>'
-        f'<span class="source-badge">{planner_source} | {confidence:.0%}</span>',
+        f'<span class="source-badge">{planner_source} | {confidence:.0%}</span>'
+        f'<span class="confidence-badge confidence-{confidence_level}">'
+        f'{confidence_emoji.get(confidence_level, "⚪")} {confidence_label.get(confidence_level, "Unknown")}</span>',
         unsafe_allow_html=True,
     )
 
@@ -414,10 +454,10 @@ if result is not None:
     with st.expander("Detailed Answer", expanded=True):
         st.markdown(result.get("detailed_answer", "---"))
 
-    # ── Evidence chunks ───────────────────────────────────────
+    # ── Evidence chunks (with Jump-to-Timestamp) ──────────────
     evidence = result.get("evidence_chunks", [])
     if evidence:
-        with st.expander(f"Evidence ({len(evidence)} chunks)", expanded=False):
+        with st.expander(f"📎 Evidence ({len(evidence)} chunks)", expanded=False):
             for i, chunk in enumerate(evidence):
                 start = chunk.get("start_time", 0)
                 end = chunk.get("end_time", 0)
@@ -425,16 +465,27 @@ if result is not None:
                 text = chunk.get("transcript_text", "")
                 frame = chunk.get("selected_frame_path", None)
 
-                st.markdown(
-                    f'<div class="evidence-card">'
-                    f'<span class="evidence-time">'
-                    f'{_fmt_time(start)} - {_fmt_time(end)}'
-                    f'</span> '
-                    f'<span class="evidence-score">score: {score:.3f}</span>'
-                    f'<br/>{text}'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
+                col_ev, col_jump = st.columns([6, 1])
+                with col_ev:
+                    st.markdown(
+                        f'<div class="evidence-card">'
+                        f'<span class="evidence-time">'
+                        f'⏱ {_fmt_time(start)} – {_fmt_time(end)}'
+                        f'</span> '
+                        f'<span class="evidence-score">score: {score:.3f}</span>'
+                        f'<br/>{text}'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                with col_jump:
+                    if st.session_state.video_bytes is not None:
+                        if st.button(
+                            f"▶️ Jump",
+                            key=f"jump_evidence_{i}",
+                            help=f"Jump video to {_fmt_time(start)}",
+                        ):
+                            st.session_state.video_start_time = start
+                            st.rerun()
 
                 # Show frame if available
                 if frame and os.path.exists(frame):
@@ -455,6 +506,7 @@ if result is not None:
             "result_id": result.get("result_id"),
             "video_id": result.get("video_id"),
             "question": result.get("question"),
+            "confidence_level": confidence_level,
             "route": route_data,
         })
 

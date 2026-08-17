@@ -43,6 +43,22 @@ from backend.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
+# ── Answer Confidence Thresholds ─────────────────────────────
+LOW_ROUTE_CONFIDENCE = 0.4      # Planner softmax confidence threshold
+LOW_EVIDENCE_SCORE = 0.3        # Combined retrieval score threshold
+DISCLAIMER_LOW_CONFIDENCE = (
+    "⚠️ **Note:** I'm not fully confident about this answer based on the "
+    "lecture content. The question may not be well covered in the video, "
+    "or the relevant section may not have been clearly transcribed. "
+    "Please verify with the original lecture.\n\n"
+)
+DISCLAIMER_NO_EVIDENCE = (
+    "⚠️ **Note:** I could not find strong evidence in the lecture transcript "
+    "for this question. The answer below is my best attempt, but it may not "
+    "accurately reflect what was discussed in the video.\n\n"
+)
+
+
 # ══════════════════════════════════════════════════════════════
 # Video Processing Pipeline
 # ══════════════════════════════════════════════════════════════
@@ -266,6 +282,7 @@ class AnswerResult:
         detailed_answer: str,
         route: PlannerResult,
         evidence: list[RetrievedChunk],
+        confidence_level: str = "high",
     ):
         self.result_id = result_id
         self.question = question
@@ -273,6 +290,7 @@ class AnswerResult:
         self.detailed_answer = detailed_answer
         self.route = route
         self.evidence = evidence
+        self.confidence_level = confidence_level  # "high", "medium", or "low"
 
     def to_evidence_json(self) -> str:
         """Serialize evidence chunks for DB storage."""
@@ -372,7 +390,11 @@ def answer_question(
 
     # Step 4: Generate detailed answer
     if generate_fn is not None:
-        detailed_answer = generate_fn(prompt)
+        image_paths = [
+            e.selected_frame for e in evidence
+            if e.selected_frame and Path(e.selected_frame).exists()
+        ]
+        detailed_answer = generate_fn(prompt, image_paths=image_paths)
     else:
         # Placeholder when no LLM is loaded
         detailed_answer = (
@@ -390,6 +412,26 @@ def answer_question(
         # Extract first sentence as direct answer placeholder
         direct_answer = detailed_answer.split(".")[0] + "." if detailed_answer else ""
 
+    # Step 6: Assess answer confidence
+    top_evidence_score = evidence[0].combined_score if evidence else 0.0
+    if route_result.confidence < LOW_ROUTE_CONFIDENCE and top_evidence_score < LOW_EVIDENCE_SCORE:
+        confidence_level = "low"
+        detailed_answer = DISCLAIMER_LOW_CONFIDENCE + detailed_answer
+        logger.info(
+            "Answer confidence: LOW (route=%.3f, evidence=%.3f)",
+            route_result.confidence, top_evidence_score,
+        )
+    elif route_result.confidence < LOW_ROUTE_CONFIDENCE or top_evidence_score < LOW_EVIDENCE_SCORE:
+        confidence_level = "medium"
+        if top_evidence_score < LOW_EVIDENCE_SCORE:
+            detailed_answer = DISCLAIMER_NO_EVIDENCE + detailed_answer
+        logger.info(
+            "Answer confidence: MEDIUM (route=%.3f, evidence=%.3f)",
+            route_result.confidence, top_evidence_score,
+        )
+    else:
+        confidence_level = "high"
+
     result = AnswerResult(
         result_id=result_id,
         question=question,
@@ -397,10 +439,11 @@ def answer_question(
         detailed_answer=detailed_answer,
         route=route_result,
         evidence=evidence,
+        confidence_level=confidence_level,
     )
 
     logger.info(
-        "QA pipeline complete | result_id=%s | route=%s | chunks=%d | answer_len=%d",
-        result_id, route_result.route, len(evidence), len(detailed_answer),
+        "QA pipeline complete | result_id=%s | route=%s | chunks=%d | answer_len=%d | confidence=%s",
+        result_id, route_result.route, len(evidence), len(detailed_answer), confidence_level,
     )
     return result
