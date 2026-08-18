@@ -375,12 +375,16 @@ def answer_question(
         device=device,
     )
 
-    # Step 3: Build prompt from evidence
-    evidence_text = "\n\n".join(
-        f"[{e.chunk.start_time:.0f}s - {e.chunk.end_time:.0f}s]: {e.chunk.transcript_text}"
-        for e in evidence
-        if e.chunk.transcript_text.strip()
-    )
+    # Step 3: Build prompt from evidence (transcript + visual summaries)
+    evidence_parts = []
+    for e in evidence:
+        if not e.chunk.transcript_text.strip():
+            continue
+        part = f"[{e.chunk.start_time:.0f}s - {e.chunk.end_time:.0f}s]: {e.chunk.transcript_text}"
+        if e.chunk.visual_summary and e.chunk.visual_summary.strip():
+            part += f"\n  [Visual Content]: {e.chunk.visual_summary}"
+        evidence_parts.append(part)
+    evidence_text = "\n\n".join(evidence_parts)
 
     prompt = build_prompt(
         route=route_result.route,

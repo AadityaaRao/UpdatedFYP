@@ -30,6 +30,7 @@ from fastapi import APIRouter, HTTPException, Request, UploadFile, status
 from backend.database import db
 from backend.edu import db_edu
 from backend.edu.chunking import create_chunks, get_video_info, sample_all_chunks
+from backend.edu.frame_captioning import caption_all_chunks
 from backend.edu.pipeline import align_transcript_to_chunks, align_whisper_segments
 from backend.edu.retrieval import build_chunk_index
 from backend.edu.schemas import (
@@ -195,6 +196,7 @@ async def upload_edu_video(
 async def upload_transcript(
     video_id: str,
     body: ManualTranscriptRequest,
+    request: Request,
 ) -> TranscriptResponse:
     """
     Accept a manual transcript and align it to video chunks.
@@ -228,7 +230,23 @@ async def upload_transcript(
         for chunk in chunks:
             db_edu.update_chunk_transcript(chunk.chunk_id, chunk.transcript_text)
 
-        # Build search index
+        # Visual grounding: caption frames with VLM
+        db_edu.update_video_status(video_id, "captioning_frames")
+        edu_state = getattr(request.app.state, "edu_models", None)
+        generate_fn = edu_state.get("generate_fn") if edu_state else None
+        if generate_fn is not None:
+            logger.info("Starting VLM frame captioning for video %s", video_id)
+            chunks = caption_all_chunks(chunks, generate_fn)
+            for chunk in chunks:
+                if chunk.visual_summary:
+                    db_edu.update_chunk_visual_summary(
+                        chunk.chunk_id, chunk.visual_summary
+                    )
+            store["chunks"] = chunks
+        else:
+            logger.warning("No VLM available — skipping frame captioning")
+
+        # Build search index (now includes visual summaries)
         db_edu.update_video_status(video_id, "indexing")
         chunk_index = build_chunk_index(chunks)
         store["chunk_index"] = chunk_index
@@ -310,7 +328,23 @@ async def auto_transcribe(
         for chunk in chunks:
             db_edu.update_chunk_transcript(chunk.chunk_id, chunk.transcript_text)
 
-        # Build search index
+        # Visual grounding: caption frames with VLM
+        db_edu.update_video_status(video_id, "captioning_frames")
+        edu_state = getattr(request.app.state, "edu_models", None)
+        generate_fn = edu_state.get("generate_fn") if edu_state else None
+        if generate_fn is not None:
+            logger.info("Starting VLM frame captioning for video %s", video_id)
+            chunks = caption_all_chunks(chunks, generate_fn)
+            for chunk in chunks:
+                if chunk.visual_summary:
+                    db_edu.update_chunk_visual_summary(
+                        chunk.chunk_id, chunk.visual_summary
+                    )
+            store["chunks"] = chunks
+        else:
+            logger.warning("No VLM available — skipping frame captioning")
+
+        # Build search index (now includes visual summaries)
         db_edu.update_video_status(video_id, "indexing")
         chunk_index = build_chunk_index(chunks)
         store["chunk_index"] = chunk_index

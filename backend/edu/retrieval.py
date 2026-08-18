@@ -189,26 +189,42 @@ def embed_query(question: str) -> np.ndarray:
 
 def build_chunk_index(chunks: list[ChunkMeta]) -> ChunkIndex:
     """
-    Build a searchable index from chunk transcripts.
+    Build a searchable index from chunk transcripts and visual summaries.
 
-    Embeds all chunk transcript texts using sentence-transformers
-    and stores them in a ChunkIndex for cosine similarity search.
+    Embeds combined transcript + visual description texts using
+    sentence-transformers and stores them in a ChunkIndex for cosine
+    similarity search. This enables retrieval based on BOTH spoken
+    content and visual content from lecture frames.
 
     Args:
-        chunks: List of ChunkMeta with transcript_text populated
+        chunks: List of ChunkMeta with transcript_text (and optionally
+                visual_summary) populated
 
     Returns:
         Built ChunkIndex ready for search()
     """
-    texts = [c.transcript_text or "" for c in chunks]
+    texts = []
+    for c in chunks:
+        parts = []
+        if c.transcript_text and c.transcript_text.strip():
+            parts.append(c.transcript_text)
+        if c.visual_summary and c.visual_summary.strip():
+            parts.append(f"[Visual Content]: {c.visual_summary}")
+        texts.append("\n\n".join(parts) if parts else "")
 
-    # Warn about empty transcripts
+    # Warn about empty chunks
     empty_count = sum(1 for t in texts if not t.strip())
     if empty_count > 0:
         logger.warning(
-            "%d / %d chunks have empty transcripts",
+            "%d / %d chunks have no transcript or visual content",
             empty_count, len(chunks),
         )
+
+    visual_count = sum(1 for c in chunks if c.visual_summary and c.visual_summary.strip())
+    logger.info(
+        "Building index: %d chunks (%d with visual summaries)",
+        len(chunks), visual_count,
+    )
 
     embeddings = embed_texts(texts)
 

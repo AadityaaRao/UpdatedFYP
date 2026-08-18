@@ -210,6 +210,19 @@ def update_chunk_transcript(chunk_id: str, transcript_text: str) -> None:
         conn.close()
 
 
+def update_chunk_visual_summary(chunk_id: str, visual_summary: str) -> None:
+    """Update the visual summary for a single chunk (from VLM frame captioning)."""
+    conn = get_connection()
+    try:
+        conn.execute(
+            "UPDATE video_chunks SET visual_summary = ? WHERE id = ?",
+            (visual_summary, chunk_id),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def count_chunks(video_id: str) -> int:
     """Count the number of chunks for a video."""
     conn = get_connection()
