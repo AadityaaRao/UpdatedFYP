@@ -442,17 +442,25 @@ if result is not None:
     )
 
     # ── Direct answer ─────────────────────────────────────────
+    direct_ans = result.get("direct_answer", "---")
+    direct_ans = direct_ans.replace("\\[", "$$").replace("\\]", "$$")
+    direct_ans = direct_ans.replace("\\(", "$").replace("\\)", "$")
+    
     st.markdown(
         f'<div class="direct-answer-card">'
         f'<div class="answer-label">Direct Answer</div>'
-        f'{result.get("direct_answer", "---")}'
+        f'{direct_ans}'
         f'</div>',
         unsafe_allow_html=True,
     )
 
     # ── Detailed answer ───────────────────────────────────────
     with st.expander("Detailed Answer", expanded=True):
-        st.markdown(result.get("detailed_answer", "---"))
+        detailed_ans = result.get("detailed_answer", "---")
+        # Fix LaTeX rendering for Streamlit (replace \[ \] with $$ and \( \) with $)
+        detailed_ans = detailed_ans.replace("\\[", "$$").replace("\\]", "$$")
+        detailed_ans = detailed_ans.replace("\\(", "$").replace("\\)", "$")
+        st.markdown(detailed_ans)
 
     # ── Evidence chunks (with Jump-to-Timestamp) ──────────────
     evidence = result.get("evidence_chunks", [])
