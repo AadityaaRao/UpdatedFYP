@@ -413,7 +413,11 @@ def answer_question(
         direct_answer = detailed_answer.split(".")[0] + "." if detailed_answer else ""
 
     # Step 6: Assess answer confidence
+    # Summary route intentionally retrieves broad, lower-scoring chunks,
+    # so we skip the evidence threshold for summaries to avoid false alarms.
     top_evidence_score = evidence[0].combined_score if evidence else 0.0
+    is_summary = route_result.route == "summary"
+
     if route_result.confidence < LOW_ROUTE_CONFIDENCE and top_evidence_score < LOW_EVIDENCE_SCORE:
         confidence_level = "low"
         detailed_answer = DISCLAIMER_LOW_CONFIDENCE + detailed_answer
@@ -421,7 +425,7 @@ def answer_question(
             "Answer confidence: LOW (route=%.3f, evidence=%.3f)",
             route_result.confidence, top_evidence_score,
         )
-    elif route_result.confidence < LOW_ROUTE_CONFIDENCE or top_evidence_score < LOW_EVIDENCE_SCORE:
+    elif not is_summary and (route_result.confidence < LOW_ROUTE_CONFIDENCE or top_evidence_score < LOW_EVIDENCE_SCORE):
         confidence_level = "medium"
         if top_evidence_score < LOW_EVIDENCE_SCORE:
             detailed_answer = DISCLAIMER_NO_EVIDENCE + detailed_answer
