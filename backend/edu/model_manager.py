@@ -156,7 +156,7 @@ class EduModelManager:
             model=model,
             processor=processor,
             max_new_tokens=max_new_tokens,
-            do_sample=False,
+            do_sample=True,
         )
 
         self._log_vram("Qwen VL loaded")

@@ -18,6 +18,22 @@ from __future__ import annotations
 # {question} = the user's question
 # {frame_description} = optional, used by visual route
 
+# ── Shared adaptive-length instruction (appended to every route) ──
+_ADAPTIVE_LENGTH_INSTRUCTION = (
+    "\n**Response Length Guidance:**\n"
+    "Adapt your response length to match the question's complexity and the student's intent.\n"
+    "- For simple factual questions, give a focused answer (a few sentences).\n"
+    "- For questions asking to 'explain', 'describe', or 'elaborate', provide a thorough, "
+    "well-structured explanation with examples from the lecture.\n"
+    "- For questions that explicitly ask for 'detail', 'in-depth', 'greater detail', or "
+    "'comprehensive' coverage, write an extensive, multi-paragraph response covering all "
+    "relevant aspects from the evidence.\n"
+    "- For summaries, cover all major points discussed in the lecture evidence.\n"
+    "Let the depth of the student's question guide how much you write. "
+    "Do NOT artificially cut short or pad your answer.\n\n"
+)
+
+
 ROUTE_PROMPTS: dict[str, str] = {
     "concept": (
         "You are a friendly, expert educational AI tutor helping a student understand a lecture.\n"
@@ -30,6 +46,7 @@ ROUTE_PROMPTS: dict[str, str] = {
         "conversational explanation. Speak directly to the student. Smoothly incorporate the "
         "definition, why it matters, and any visual aids or analogies the instructor used.\n\n"
         "If the evidence does not contain enough information, say so honestly.\n\n"
+        + _ADAPTIVE_LENGTH_INSTRUCTION +
         "--- Transcript Evidence ---\n{evidence}\n--- End Evidence ---\n\n"
         "Question: {question}\n\n"
         "Detailed Answer:"
@@ -45,6 +62,7 @@ ROUTE_PROMPTS: dict[str, str] = {
         "method clearly. If the frames show steps or code that the instructor didn't fully "
         "verbalize, include those details. Speak directly to the student.\n\n"
         "If the evidence does not contain enough information, say so honestly.\n\n"
+        + _ADAPTIVE_LENGTH_INSTRUCTION +
         "--- Transcript Evidence ---\n{evidence}\n--- End Evidence ---\n\n"
         "Question: {question}\n\n"
         "Detailed Answer:"
@@ -59,6 +77,7 @@ ROUTE_PROMPTS: dict[str, str] = {
         "what was discussed before and after, and how the sequence builds understanding.\n\n"
         "Speak directly to the student. Do not just copy-paste content as headings.\n\n"
         "If the evidence does not contain enough information, say so honestly.\n\n"
+        + _ADAPTIVE_LENGTH_INSTRUCTION +
         "--- Transcript Evidence ---\n{evidence}\n--- End Evidence ---\n\n"
         "Question: {question}\n\n"
         "Detailed Answer:"
@@ -77,6 +96,7 @@ ROUTE_PROMPTS: dict[str, str] = {
         "natural, conversational answer.\n\n"
         "You MUST reference specific visual content you observed in the frames.\n\n"
         "If the evidence does not contain enough information, say so honestly.\n\n"
+        + _ADAPTIVE_LENGTH_INSTRUCTION +
         "--- Transcript Evidence ---\n{evidence}\n--- End Evidence ---\n\n"
         "Question: {question}\n\n"
         "Detailed Answer:"
@@ -92,6 +112,7 @@ ROUTE_PROMPTS: dict[str, str] = {
         "Speak directly to the student. Highlight the main points and key takeaways in an "
         "engaging way, showing how the ideas connect.\n\n"
         "If the evidence does not contain enough information, say so honestly.\n\n"
+        + _ADAPTIVE_LENGTH_INSTRUCTION +
         "--- Transcript Evidence ---\n{evidence}\n--- End Evidence ---\n\n"
         "Question: {question}\n\n"
         "Detailed Answer:"

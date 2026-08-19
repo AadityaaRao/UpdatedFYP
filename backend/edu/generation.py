@@ -106,9 +106,9 @@ def load_qwen(
 def create_generate_fn(
     model=None,
     processor=None,
-    max_new_tokens: int = 350,
-    temperature: float = 0.1,
-    do_sample: bool = False,
+    max_new_tokens: int = 2048,
+    temperature: float = 0.7,
+    do_sample: bool = True,
 ) -> Callable:
     """
     Create a generate function that wraps Qwen VL inference.
