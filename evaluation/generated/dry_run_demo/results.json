@@ -1,0 +1,48 @@
+[
+  {
+    "question_id": "dry_factual_1",
+    "question": "What topic is introduced in the demo evidence?",
+    "category": "factual",
+    "ground_truth": "The demo evidence introduces matrix notation.",
+    "actual_answer": "The demo evidence introduces matrix notation.",
+    "detailed_answer": "The demo evidence introduces matrix notation.",
+    "evidence": "Demo evidence only.",
+    "timestamps": [],
+    "route": "dry_run",
+    "planner_source": "dry_run",
+    "route_confidence": null,
+    "latency_seconds": 0.0,
+    "error": null,
+    "evaluation": {
+      "correctness": 2,
+      "relevance": 2,
+      "groundedness": 2,
+      "completeness": 2,
+      "total_score": 8,
+      "reason": "Dry-run heuristic judge used."
+    }
+  },
+  {
+    "question_id": "dry_unanswerable_1",
+    "question": "What is the instructor's home address?",
+    "category": "unanswerable",
+    "ground_truth": "The video does not provide enough information to answer this.",
+    "actual_answer": "The video does not provide enough information to answer that.",
+    "detailed_answer": "The video does not provide enough information to answer that.",
+    "evidence": "No such information is present.",
+    "timestamps": [],
+    "route": "dry_run",
+    "planner_source": "dry_run",
+    "route_confidence": null,
+    "latency_seconds": 0.0,
+    "error": null,
+    "evaluation": {
+      "correctness": 2,
+      "relevance": 2,
+      "groundedness": 2,
+      "completeness": 2,
+      "total_score": 8,
+      "reason": "Dry-run heuristic judge used."
+    }
+  }
+]

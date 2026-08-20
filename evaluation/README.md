@@ -1,94 +1,119 @@
-# 📊 Model Comparison & Evaluation Framework
+# Edu-VQAGuider Automated Evaluation
 
-This directory contains the **Evaluation and Comparison Framework** for comparing your **Edu-VQAGuider** project against a standard **Baseline model** (Qwen2.5-3B answering directly without any video context/RAG).
+This folder contains an isolated answer-quality evaluation pipeline. It does not modify the core backend or frontend.
 
-The evaluation automatically calculates lexical metrics and performance indicators, exporting the results to a beautifully formatted, color-coded **Excel spreadsheet** with three analysis sheets.
+## What Was Discovered
 
----
+- Active Edu-VQAGuider API: `POST /api/v2/videos/{video_id}/ask`
+- Ask request body: `{"question": "..."}`
+- Ask response fields used by evaluation: `direct_answer`, `detailed_answer`, `route`, `evidence_chunks`, `confidence_level`
+- Upload endpoint: `POST /api/v2/videos`
+- Auto-transcription endpoint: `POST /api/v2/videos/{video_id}/transcribe`
+- Manual transcript endpoint: `POST /api/v2/videos/{video_id}/transcript`
+- Video chunks, timestamps, transcripts, frame paths, and visual summaries are persisted in SQLite through `backend.edu.db_edu`
+- Uploaded videos and extracted frames are stored by the application under `uploads/<video_id>/`, with frames under `uploads/<video_id>/frames/`
 
-## 🚀 How to Run the Evaluation
+## College Workflow
 
-### Step 1: Install Dependencies
-Make sure you install the required evaluation libraries:
+Run commands from the project root:
+
 ```bash
-pip install -r requirements.txt
+cd UpdatedFYP
 ```
-*(This installs `rouge-score`, `nltk`, and `openpyxl` for metrics computation and Excel generation)*
 
-### Step 2: Start the FastAPI Backend
-Before running the evaluator, your backend server must be running and ready:
+1. Put your five videos here:
+
+```text
+evaluation/videos/
+```
+
+2. Start the backend:
+
 ```bash
 uvicorn backend.main:app --host 0.0.0.0 --port 8000
 ```
-Ensure that the models load successfully.
 
-### Step 3: Run the Comparison Evaluator
-You have two ways to run the evaluation:
+3. Generate draft questions:
 
-#### Option A: With a Local Video File (Automatic Ingestion)
-This will automatically upload the video, run Whisper transcription, build the chunk indices, and then run all questions against both models:
 ```bash
-python evaluation/evaluate_comparison.py \
-    --csv evaluation/test_questions.csv \
-    --video_path evaluation/sample_lecture.mp4 \
-    --backend http://localhost:8000
+python evaluation/generate_questions.py
 ```
 
-#### Option B: With an Existing `video_id` (Already Processed)
-If you have already uploaded and transcribed a video, you can bypass the ingestion stage by providing its `video_id`:
-```bash
-python evaluation/evaluate_comparison.py \
-    --csv evaluation/test_questions.csv \
-    --video_id "your-video-uuid-here" \
-    --backend http://localhost:8000
+This uploads and transcribes each discovered video, reads the generated chunks/evidence, and writes:
+
+```text
+evaluation/generated/<video_name>/questions.json
+evaluation/generated/all_questions.json
 ```
 
----
+Each video gets exactly 10 questions: 3 factual, 2 reasoning, 1 temporal, 2 visual/multimodal, and 2 unanswerable.
 
-## 📈 What Metrics Are Computed?
+4. Review the JSON files manually.
 
-For every test question, the framework runs:
-1. **BASELINE**: Queries the local Qwen2.5-3B model with **NO** video context (simulating asking the LLM without watching the video).
-2. **EDU-VQAGUIDER**: Runs the complete RAG pipeline (transcribes audio, creates chunk embeddings, routes intent, retrieves top-3 chunks, selects CLIP keyframes, and generates a grounded response).
+Generated questions are drafts. They start with:
 
-Then, it computes:
-* **ROUGE-L F1 Score**: Measures phrase and word-ordering overlap against the reference answer.
-* **BLEU-4 Score**: Measures precision of 4-gram overlaps (strict accuracy check).
-* **Word Count**: Measures the length and richness of the detailed answer.
-* **Response Time**: Measures latency in seconds.
-* **Winner Verdict**: Declares whether Edu-VQAGuider, the Baseline, or a Tie won the question (based on a margin of $0.05$ in ROUGE-L).
+```json
+"verified": false
+```
 
----
+Change reviewed questions to:
 
-## 📊 Styled Excel Output Sheets
+```json
+"verified": true
+```
 
-The results are saved in `evaluation/results/comparison_YYYYMMDD_HHMMSS.xlsx`. The workbook is styled with professional dark-blue headers, color-coded cells, and contains **three interactive sheets**:
+5. Run evaluation:
 
-### 1. `Comparison` (Main Sheet)
-* Shows question-by-question side-by-side answers.
-* Color-coded **Winner** verdict column:
-  * 🟢 **Green**: Edu-VQAGuider won (RAG pipeline significantly outperformed the baseline).
-  * 🔴 **Red**: Baseline won.
-  * 🟡 **Yellow**: Tie.
-* Color-coded **EDU Route** column showing how the *EduPlanner* classified the question (Concept, Procedure, Temporal, Visual, Summary).
-* Color-coded **Improvement** column showing the exact margin of improvement.
+```bash
+python evaluation/run_evaluation.py
+```
 
-### 2. `Summary` (Statistics)
-* Aggregated metrics (average ROUGE-L, average BLEU-4, average response time, word counts) for both models.
-* Total win count and win-percentage breakdown.
-* **Route distribution** representing which kinds of questions were asked most.
+For testing before review:
 
-### 3. `By Category` (Deep Dive)
-* Performance breakdown grouped by category.
-* Helps you immediately see which question types (e.g., temporal vs. conceptual) benefit the most from the RAG pipeline.
+```bash
+python evaluation/run_evaluation.py --allow-unverified
+```
 
----
+6. Read the reports:
 
-## 📝 Customizing Test Questions
+```text
+evaluation/report.json
+evaluation/report.md
+evaluation/generated/<video_name>/results.json
+```
 
-You can easily add your own questions to the test suite by editing [test_questions.csv](file:///c:/Users/Darshini/OneDrive/Desktop/final%20year%20project/UpdatedFYP/evaluation/test_questions.csv). Keep the following columns intact:
-* `video_url`: The URL/source of the educational video.
-* `video_local_path`: Local path to save/cache the video.
-* `question`: The specific question to evaluate.
-* `reference_answer`: The gold-standard ground-truth answer.
-* `category`: The category (choose from: `concept`, `procedure`, `temporal`, `visual`, `summary`).
+## Dry Run Without Videos Or Backend
+
+Use this now on your laptop:
+
+```bash
+python evaluation/run_evaluation.py --dry-run
+```
+
+Dry run checks imports, JSON structure, evaluation logic, report generation, and resumable result writing. It does not call the real application and the report is marked as dry-run.
+
+## Resuming
+
+The runner writes each video's `results.json` after every question. If a run stops, rerun the same command and completed questions with evaluations are reused.
+
+## If The Backend Was Restarted
+
+The real QA endpoint keeps processed videos in memory. If the backend is restarted after question generation, the saved `video_id` may no longer be askable even though the database still contains rows. In that case, rerun:
+
+```bash
+python evaluation/generate_questions.py --force-upload
+```
+
+Then review/run evaluation again.
+
+## Existing Comparison Scripts
+
+The older comparison scripts are still available:
+
+```text
+evaluation/evaluate_comparison.py
+evaluation/generate_sample_report.py
+evaluation/test_questions.csv
+```
+
+They were left in place for reference.
